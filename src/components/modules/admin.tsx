@@ -24,7 +24,7 @@ import { toast } from "sonner";
 export function AdminModule() {
   const currentUser = useStore((s) => s.currentUser)!;
   const tenants = useStore((s) => s.tenants);
-  const addPlaza = useStore((s) => s.addPlaza);
+  const addTenant = useStore((s) => s.addTenant);
   const [onboardOpen, setOnboardOpen] = useState(false);
   const [newTenant, setNewTenant] = useState({ name: "", legalName: "", taxId: "", subscriptionTier: "STARTER" });
 
@@ -36,7 +36,16 @@ export function AdminModule() {
       toast.error("Tenant name required");
       return;
     }
-    addPlaza(newTenant);
+    addTenant({
+      name: newTenant.name,
+      legalName: newTenant.legalName || newTenant.name,
+      taxId: newTenant.taxId,
+      countryCode: "OM",
+      currency: "OMR",
+      timezone: "Asia/Muscat",
+      status: "ACTIVE",
+      subscriptionTier: newTenant.subscriptionTier as "STARTER" | "GROWTH" | "ENTERPRISE" | "WHITE_LABEL",
+    });
     toast.success("Tenant onboarded", {
       description: `${newTenant.name} created with ${newTenant.subscriptionTier} tier. Onboarding wizard email sent.`,
     });

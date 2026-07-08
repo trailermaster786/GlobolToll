@@ -26,7 +26,7 @@ export function StaffModule() {
   const [designationFilter, setDesignationFilter] = useState("ALL");
 
   const visibleStaff = staff
-    .filter((s) => currentUser.role === "SUPER_ADMIN" || s.tenantId === currentTenantId)
+    .filter((s) => currentUser.role === "ADMIN" || s.tenantId === currentTenantId)
     .filter((s) => designationFilter === "ALL" ? true : s.designation === designationFilter);
 
   const activeCount = visibleStaff.filter((s) => s.status === "ACTIVE").length;

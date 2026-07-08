@@ -3,28 +3,41 @@ import { useState } from "react";
 import { useStore } from "@/store/app-store";
 import { GlobalTollLogo } from "@/components/brand/logo";
 import {
-  Shield, ChevronRight, Eye, EyeOff, UserCog, Car, ArrowRight,
+  Shield, ChevronRight, Eye, EyeOff, Car, ArrowRight,
 } from "lucide-react";
 
 export function LoginScreen() {
   const users = useStore((s) => s.users);
   const login = useStore((s) => s.login);
-  const [email, setEmail] = useState("admin@omantoll.om");
-  const [password, setPassword] = useState("•••••••••");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
 
-  const admin = users.find((u) => u.role === "ADMIN");
   const operator = users.find((u) => u.role === "OPERATOR");
 
   const handleLogin = () => {
-    const u = users.find((x) => x.email === email);
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+    const u = users.find((x) => x.email === email && x.password === password);
     if (!u) {
-      setError("No account found with that email. Use one of the role buttons below.");
+      setError("Invalid email or password.");
+      return;
+    }
+    if (u.status === "SUSPENDED") {
+      setError("Account is suspended. Contact administrator.");
       return;
     }
     setError("");
     login(u.id);
+  };
+
+  const handleOperatorLogin = () => {
+    if (operator) {
+      login(operator.id);
+    }
   };
 
   return (
@@ -35,26 +48,17 @@ export function LoginScreen() {
           "linear-gradient(135deg, #F2F2F0 0%, #FFFFFF 40%, #F2F2F0 100%)",
       }}
     >
-      {/* Left brand panel */}
+      {/* Left brand panel with toll image */}
       <div
         className="hidden lg:flex flex-col justify-between p-12 text-white relative overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(155deg, #2C3E50 0%, #1F2D3D 50%, #1A2B3C 100%)",
-        }}
       >
-        <svg
-          className="absolute -bottom-20 -right-20 opacity-10"
-          width="400"
-          height="400"
-          viewBox="0 0 64 64"
-          fill="none"
-        >
-          <path d="M 11 24 C 11 12, 53 12, 53 24" stroke="#2E8B8B" strokeWidth="3" fill="none" />
-          <rect x="8" y="22" width="5" height="34" rx="1.5" fill="#2E8B8B" />
-          <rect x="51" y="22" width="5" height="34" rx="1.5" fill="#2E8B8B" />
-          <path d="M 13 56 C 24 54, 34 48, 44 38 C 50 32, 56 28, 62 22" stroke="#2E8B8B" strokeWidth="3" fill="none" />
-        </svg>
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url(/toll-hero.png)" }}
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
 
         <div className="relative z-10">
           <GlobalTollLogo size={48} variant="dark" />
@@ -72,11 +76,11 @@ export function LoginScreen() {
 
           <div className="grid grid-cols-3 gap-4 pt-6 max-w-md">
             <div>
-              <div className="text-2xl font-bold text-[#E0A030]">3</div>
+              <div className="text-2xl font-bold text-[#E0A030]">4</div>
               <div className="text-[0.65rem] opacity-70 uppercase tracking-wider">Toll Plazas</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-[#E0A030]">12</div>
+              <div className="text-2xl font-bold text-[#E0A030]">16</div>
               <div className="text-[0.65rem] opacity-70 uppercase tracking-wider">Active Lanes</div>
             </div>
             <div>
@@ -109,29 +113,28 @@ export function LoginScreen() {
           <div className="space-y-4">
             <div>
               <label className="text-xs font-medium text-foreground mb-1.5 block">
-                Work email
+                Email
               </label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-teal"
-                placeholder="you@omantoll.om"
+                placeholder="Enter your email"
               />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-medium text-foreground">Password</label>
-                <button className="text-xs text-teal hover:underline">
-                  Forgot?
-                </button>
               </div>
               <div className="relative">
                 <input
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                   className="w-full h-10 px-3 pr-10 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-teal"
+                  placeholder="Enter your password"
                 />
                 <button
                   type="button"
@@ -161,52 +164,32 @@ export function LoginScreen() {
             </button>
           </div>
 
-          {/* Demo role quick-pick */}
-          <div className="border-t border-border pt-5">
-            <div className="text-xs font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">
-              Quick access — choose your role
+          {/* Operator quick access only */}
+          {operator && (
+            <div className="border-t border-border pt-5">
+              <div className="text-xs font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">
+                Lane Operator Access
+              </div>
+              <button
+                onClick={handleOperatorLogin}
+                className="flex items-center gap-3 p-3 rounded-md border-2 border-border hover:border-[var(--color-gold)] hover:bg-amber-50/30 text-left transition-all group w-full"
+              >
+                <div className="h-10 w-10 rounded-md bg-[var(--color-gold)]/15 grid place-items-center shrink-0" style={{ color: "var(--color-gold-dark)" }}>
+                  <Car className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-foreground">Lane Operator</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {operator.email} · Toll transaction console
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-[var(--color-gold-dark)] group-hover:translate-x-0.5 transition-all" />
+              </button>
+              <p className="text-[0.6rem] text-muted-foreground mt-3 leading-relaxed">
+                Operator sees only the transaction entry console for capturing toll payments.
+              </p>
             </div>
-            <div className="grid grid-cols-1 gap-2">
-              {admin && (
-                <button
-                  onClick={() => login(admin.id)}
-                  className="flex items-center gap-3 p-3 rounded-md border-2 border-border hover:border-teal hover:bg-teal/5 text-left transition-all group"
-                >
-                  <div className="h-10 w-10 rounded-md bg-teal/10 text-teal grid place-items-center shrink-0">
-                    <UserCog className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-foreground">Administrator</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {admin.email} · Full dashboard &amp; management access
-                    </div>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-teal group-hover:translate-x-0.5 transition-all" />
-                </button>
-              )}
-              {operator && (
-                <button
-                  onClick={() => login(operator.id)}
-                  className="flex items-center gap-3 p-3 rounded-md border-2 border-border hover:border-[var(--color-gold)] hover:bg-amber-50/30 text-left transition-all group"
-                >
-                  <div className="h-10 w-10 rounded-md bg-[var(--color-gold)]/15 grid place-items-center shrink-0" style={{ color: "var(--color-gold-dark)" }}>
-                    <Car className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-foreground">Lane Operator</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {operator.email} · 5-step transaction console
-                    </div>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-[var(--color-gold-dark)] group-hover:translate-x-0.5 transition-all" />
-                </button>
-              )}
-            </div>
-            <p className="text-[0.6rem] text-muted-foreground mt-3 leading-relaxed">
-              Operator sees only the transaction entry console. Admin sees the full dashboard with
-              plazas, pricing, vehicles, and audit management.
-            </p>
-          </div>
+          )}
         </div>
       </div>
     </div>

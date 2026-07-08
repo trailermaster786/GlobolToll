@@ -247,7 +247,7 @@ export function FleetModule() {
                 <div key={a.id} className="p-3 border rounded-md">
                   <div className="text-xs font-semibold truncate">{a.name}</div>
                   <div className="text-[0.65rem] text-muted-foreground mt-1">
-                    {a.vehicleCount} vehicles · avg {formatCurrency(Math.round(fleetSpend.find(f => f.name.includes(a.name.split(" ")[0]))?.spend / a.vehicleCount || 0), "INR", { compact: true })}/vehicle
+                    {a.vehicleCount} vehicles · avg {formatCurrency(Math.round((fleetSpend.find(f => f.name.includes(a.name.split(" ")[0]))?.spend ?? 0) / a.vehicleCount || 0), "INR", { compact: true })}/vehicle
                   </div>
                 </div>
               ))}

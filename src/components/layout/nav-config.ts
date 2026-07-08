@@ -137,4 +137,5 @@ export const MODULE_TITLES: Record<ModuleKey, { title: string; subtitle: string 
   notifications: { title: "Notifications & Communication", subtitle: "Multi-channel templated messaging, broadcast" },
   admin: { title: "System Administration", subtitle: "Tenants, feature flags, theming, integrations" },
   audit: { title: "Security & Audit", subtitle: "Immutable hash-chained log, RBAC, MFA, security events" },
+  operator: { title: "Lane Operator Console", subtitle: "Toll capture, payment processing, receipt generation" },
 };

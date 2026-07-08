@@ -37,7 +37,7 @@ export function AuditModule() {
   const [actionFilter, setActionFilter] = useState("ALL");
 
   const visibleLogs = auditLogs
-    .filter((l) => currentUser.role === "SUPER_ADMIN" || l.tenantId === currentTenantId)
+    .filter((l) => currentUser.role === "ADMIN" || l.tenantId === currentTenantId)
     .filter((l) => (actionFilter === "ALL" ? true : l.action === actionFilter))
     .filter((l) =>
       search
@@ -231,7 +231,7 @@ export function AuditModule() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(Object.keys(ROLES.CUSTOMER.permissions) as ModuleKey[]).map((mod) =>
+                  {(Object.keys(ROLES.OPERATOR.permissions) as ModuleKey[]).map((mod) =>
                     (["view", "create", "edit", "delete", "approve"] as const).map((perm, pi) => (
                       <TableRow key={`${mod}-${perm}`}>
                         {pi === 0 && (

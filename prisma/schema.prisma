@@ -139,6 +139,7 @@ model Tag {
 
   vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
   wallet      Wallet?
+  transactions Transaction[]
 }
 
 // ---- Wallet & Payment -------------------------------------------------
@@ -227,6 +228,7 @@ model Transaction {
   vehicle      Vehicle? @relation(fields: [vehicleId], references: [id])
   tag          Tag?     @relation(fields: [tagId], references: [id])
   wallet       Wallet?  @relation(fields: [walletId], references: [id])
+  settlement   Settlement? @relation(fields: [settlementId], references: [id])
 }
 
 // ---- Settlement & Reconciliation --------------------------------------

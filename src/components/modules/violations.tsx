@@ -49,7 +49,7 @@ export function ViolationsModule() {
   const [detailViolationId, setDetailViolationId] = useState<string | null>(null);
 
   const visibleViolations = violations.filter(
-    (v) => currentUser.role === "SUPER_ADMIN" || v.tenantId === currentTenantId
+    (v) => currentUser.role === "ADMIN" || v.tenantId === currentTenantId
   );
   const canIssue = can(currentUser.role, "violations", "create");
 
@@ -267,8 +267,9 @@ export function ViolationsModule() {
                   <label className="text-xs font-medium">Vehicle Plate Number</label>
                   <input
                     type="text"
-                    placeholder="MH-12-AB-1234"
+                    placeholder="12345-A"
                     className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm font-mono uppercase"
+                    onInput={(e) => { const t = e.target as HTMLInputElement; t.value = t.value.toUpperCase().replace(/[^0-9A-Z-]/g, ""); }}
                   />
                 </div>
                 <div>

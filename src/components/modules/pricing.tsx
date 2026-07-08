@@ -35,16 +35,16 @@ export function PricingModule() {
   const canEdit = can(currentUser.role, "pricing", "edit");
 
   const visiblePlazas = plazas.filter(
-    (p) => currentUser.role === "SUPER_ADMIN" || p.tenantId === currentTenantId
+    (p) => currentUser.role === "ADMIN" || p.tenantId === currentTenantId
   );
   const visibleRateCards = rateCards.filter((rc) =>
     visiblePlazas.some((p) => p.id === rc.plazaId)
   );
   const visibleRateRules = rateRules.filter(
-    (rr) => currentUser.role === "SUPER_ADMIN" || rr.tenantId === currentTenantId
+    (rr) => currentUser.role === "ADMIN" || rr.tenantId === currentTenantId
   );
   const visibleDiscounts = discountPlans.filter(
-    (dp) => currentUser.role === "SUPER_ADMIN" || dp.tenantId === currentTenantId
+    (dp) => currentUser.role === "ADMIN" || dp.tenantId === currentTenantId
   );
 
   const filteredRateCards = selectedPlaza === "ALL"

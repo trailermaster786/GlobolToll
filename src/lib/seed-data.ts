@@ -1,7 +1,7 @@
 // =====================================================================
-// Global Toll — Production Seed Data
-// Real client deployment: 1 tenant, 2 users (Admin + Operator),
-// minimal plazas/lanes/rate cards, empty transaction ledger.
+// Global Toll — Fresh Application State
+// Only reference data (vehicle classes) + default user accounts.
+// Everything else is created by users through the application.
 // =====================================================================
 import type {
   AppState,
@@ -28,14 +28,12 @@ import type {
   DiscountPlan,
   RateRule,
   Tenant,
-  VehicleClassCode,
 } from "./types";
 
 const now = Date.now();
 const iso = (offsetMs: number) => new Date(now + offsetMs).toISOString();
-const days = (n: number) => n * 24 * 60 * 60_000;
 
-// ---- tenant ----------------------------------------------------------
+// ---- Default tenant (created on first run) --------------------------
 const tenants: Tenant[] = [
   {
     id: "tnt-1",
@@ -47,59 +45,11 @@ const tenants: Tenant[] = [
     timezone: "Asia/Muscat",
     status: "ACTIVE",
     subscriptionTier: "ENTERPRISE",
-    createdAt: iso(-days(120)),
+    createdAt: iso(0),
   },
 ];
 
-// ---- highways & plazas (minimal — Oman context) --------------------
-const highways: Highway[] = [
-  { id: "hw-1", tenantId: "tnt-1", code: "SQ-MQ", name: "Sohar — Muscat Expressway", lengthKm: 209, region: "Al Batinah / Muscat" },
-  { id: "hw-2", tenantId: "tnt-1", code: "MQ-NZ", name: "Muscat — Nizwa Road", lengthKm: 165, region: "Muscat / Al Dakhiliyah" },
-];
-
-const plazas: TollPlaza[] = [
-  { id: "plz-1", highwayId: "hw-1", tenantId: "tnt-1", code: "TP-001", name: "Sohar Gate Plaza", kmMark: 12, latitude: 24.3476, longitude: 56.7086, direction: "BOTH", status: "OPEN" },
-  { id: "plz-2", highwayId: "hw-1", tenantId: "tnt-1", code: "TP-002", name: "Barka Checkpoint Plaza", kmMark: 78, latitude: 23.6848, longitude: 57.8909, direction: "BOTH", status: "OPEN" },
-  { id: "plz-3", highwayId: "hw-2", tenantId: "tnt-1", code: "TP-003", name: "Bidbid Junction Plaza", kmMark: 45, latitude: 23.3933, longitude: 58.1053, direction: "BOTH", status: "OPEN" },
-];
-
-// ---- lanes (3 plazas × 4 lanes = 12 lanes) -------------------------
-const laneTypes: Lane["type"][] = ["CASH", "ETC_RFID", "HYBRID", "EXPRESS_HOV"];
-const lanes: Lane[] = [];
-plazas.forEach((plz) => {
-  for (let i = 1; i <= 4; i++) {
-    const dir = i % 2 === 0 ? "REVERSE" : "FORWARD";
-    const type = i === 1 ? "ETC_RFID" : i === 2 ? "HYBRID" : i === 3 ? "CASH" : "EXPRESS_HOV";
-    lanes.push({
-      id: `lane-${plz.id}-${i}`,
-      plazaId: plz.id,
-      number: i,
-      type,
-      direction: dir,
-      status: "OPEN",
-      updatedAt: iso(-60_000),
-    });
-  }
-});
-
-// ---- devices (one RFID reader + one ANPR camera per lane) ----------
-const devices: Device[] = [];
-lanes.forEach((ln) => {
-  (["RFID_READER", "ANPR_CAMERA", "BARRIER"] as const).forEach((dtype, idx) => {
-    devices.push({
-      id: `dev-${ln.id}-${dtype}`,
-      laneId: ln.id,
-      type: dtype,
-      serialNo: `${dtype.slice(0, 3)}-${ln.id.slice(-6).toUpperCase()}-${idx}`,
-      vendor: "Kapsch",
-      status: "ONLINE",
-      lastHeartbeat: iso(-30_000),
-      firmware: `v3.2.${idx}`,
-    });
-  });
-});
-
-// ---- vehicle classes (Oman-standard) -------------------------------
+// ---- Vehicle classes (reference data — cannot be deleted) -----------
 const vehicleClasses: VehicleClass[] = [
   { code: "TWO_WHEELER", label: "Motorcycle / Scooter", axleCount: 2, description: "Private 2-wheeler" },
   { code: "CAR", label: "Private Car / SUV", axleCount: 2, description: "Light motor vehicle ≤ 3.5T" },
@@ -110,59 +60,92 @@ const vehicleClasses: VehicleClass[] = [
   { code: "OVERSIZED", label: "Oversized Load", axleCount: 6, description: "Special-permit cargo" },
 ];
 
-// ---- sample vehicles (for operator wallet lookup demo) -------------
-// Oman plate format: 1-6 digits, dash, then region letter(s)
-// Region codes: A=Muscat, B=Dhofar, C=Musandam, D=Buraimi, E=Dakhiliyah,
-//               F=Batinah North, G=Batinah South, H=Sharqiyah North,
-//               I=Sharqiyah South, J=Dhahirah, K=Wusta
-const samplePlates: Array<[string, VehicleClassCode, string]> = [
-  ["12345-A", "CAR", "Mohammed Al Balushi"],
-  ["67890-A", "CAR", "Fatima Al Hinai"],
-  ["4421-B", "LCV", "Said Al Rahbi"],
-  ["987654-C", "HCV", "Ahmed Transport LLC"],
-  ["3321-D", "BUS", "Oman National Transport"],
-  ["55-A", "TWO_WHEELER", "Khalid Al Maamari"],
-  ["7788-E", "CAR", "Nadia Al Lawati"],
-  ["442109-F", "MULTI_AXLE", "Sohar Cargo Co"],
+// ---- Default user accounts (admin + operator) -----------------------
+const users: User[] = [
+  {
+    id: "usr-admin",
+    tenantId: "tnt-1",
+    email: "admin123",
+    password: "12345678",
+    name: "Admin User",
+    role: "ADMIN",
+    mfaEnabled: false,
+    lastLoginAt: iso(0),
+    status: "ACTIVE",
+  },
+  {
+    id: "usr-operator",
+    tenantId: "tnt-1",
+    email: "lane123@gmail.com",
+    password: "87654321",
+    name: "Lane Operator",
+    role: "OPERATOR",
+    mfaEnabled: false,
+    lastLoginAt: iso(0),
+    status: "ACTIVE",
+  },
 ];
 
+// ---- Highways --------------------------------------------------------
+const highways: Highway[] = [
+  { id: "hw-1", tenantId: "tnt-1", code: "MQ-SL", name: "Muscat — Salalah Highway", lengthKm: 1025, region: "Al Dhofar / Muscat" },
+];
+
+// ---- Plazas (4 plazas × 4 lanes each) --------------------------------
+const plazas: TollPlaza[] = [
+  { id: "plz-1", highwayId: "hw-1", tenantId: "tnt-1", code: "TP-001", name: "Salalah Plaza", kmMark: 980, latitude: 17.0151, longitude: 54.0924, direction: "BOTH", status: "OPEN" },
+  { id: "plz-2", highwayId: "hw-1", tenantId: "tnt-1", code: "TP-002", name: "Sohar Plaza", kmMark: 320, latitude: 24.3644, longitude: 56.7469, direction: "BOTH", status: "OPEN" },
+  { id: "plz-3", highwayId: "hw-1", tenantId: "tnt-1", code: "TP-003", name: "Muscat Plaza", kmMark: 10, latitude: 23.5880, longitude: 58.3829, direction: "BOTH", status: "OPEN" },
+  { id: "plz-4", highwayId: "hw-1", tenantId: "tnt-1", code: "TP-004", name: "Barka Plaza", kmMark: 75, latitude: 23.6848, longitude: 57.8909, direction: "BOTH", status: "OPEN" },
+];
+
+// ---- Lanes (4 plazas × 4 lanes = 16 lanes) ---------------------------
+const laneTypes: Lane["type"][] = ["ETC_RFID", "CASH", "HYBRID", "EXPRESS_HOV"];
+const laneDirections: Lane["direction"][] = ["FORWARD", "FORWARD", "REVERSE", "REVERSE"];
+const lanes: Lane[] = [];
+plazas.forEach((plz) => {
+  for (let i = 1; i <= 4; i++) {
+    lanes.push({
+      id: `lane-${plz.id}-${i}`,
+      plazaId: plz.id,
+      number: i,
+      type: laneTypes[i - 1],
+      direction: laneDirections[i - 1],
+      status: "OPEN",
+      updatedAt: iso(0),
+    });
+  }
+});
+
+// ---- Devices (one per lane) -------------------------------------------
+const devices: Device[] = [];
+lanes.forEach((ln) => {
+  devices.push({
+    id: `dev-${ln.id}-RFID`,
+    laneId: ln.id,
+    type: "RFID_READER",
+    serialNo: `RFID-${ln.plazaId.toUpperCase()}-${ln.number}`,
+    vendor: "Kapsch",
+    status: "ONLINE",
+    lastHeartbeat: iso(0),
+    firmware: "v3.2.0",
+  });
+  devices.push({
+    id: `dev-${ln.id}-ANPR`,
+    laneId: ln.id,
+    type: "ANPR_CAMERA",
+    serialNo: `ANPR-${ln.plazaId.toUpperCase()}-${ln.number}`,
+    vendor: "Hikvision",
+    status: "ONLINE",
+    lastHeartbeat: iso(0),
+    firmware: "v2.1.0",
+  });
+});
 const vehicles: Vehicle[] = [];
 const tags: Tag[] = [];
 const wallets: Wallet[] = [];
-
-samplePlates.forEach(([plate, cls, owner], i) => {
-  const vid = `veh-${i + 1}`;
-  const tid = `tag-${i + 1}`;
-  vehicles.push({
-    id: vid,
-    tenantId: "tnt-1",
-    plateNumber: plate,
-    vehicleClassCode: cls,
-    ownerName: owner,
-    status: "ACTIVE",
-    createdAt: iso(-days(60 - i)),
-  });
-  tags.push({
-    id: tid,
-    vehicleId: vid,
-    rfid: `OM${String(7700000000000 + i * 137).padStart(13, "0")}`,
-    status: "ACTIVE",
-    issuedAt: iso(-days(60 - i)),
-  });
-  wallets.push({
-    id: `wlt-${i + 1}`,
-    tagId: tid,
-    balance: [25.500, 8.750, 15.000, 2.300, 0.000, 3.250, 12.400, 1.500][i],
-    currency: "OMR",
-    autoRecharge: i < 4,
-    rechargeThreshold: 5.000,
-    rechargeAmount: 20.000,
-    updatedAt: iso(-days(1)),
-  });
-});
-
-// ---- rate cards (per plaza × vehicle class, OMR pricing) -----------
-const baseRatesByClass: Record<VehicleClassCode, number> = {
+// ---- Rate Cards (base rates per vehicle class) -----------------------
+const baseRates: Record<string, number> = {
   TWO_WHEELER: 0.200,
   CAR: 0.500,
   LCV: 0.800,
@@ -174,8 +157,8 @@ const baseRatesByClass: Record<VehicleClassCode, number> = {
 
 const rateCards: RateCard[] = [];
 plazas.forEach((plz) => {
-  vehicleClasses.forEach((vc) => {
-    const base = baseRatesByClass[vc.code];
+  vehicleClasses.forEach((vc, i) => {
+    const base = baseRates[vc.code] ?? 0.500;
     rateCards.push({
       id: `rc-${plz.id}-${vc.code}`,
       tenantId: "tnt-1",
@@ -185,75 +168,29 @@ plazas.forEach((plz) => {
       singleJourney: base,
       roundJourney: +(base * 1.6).toFixed(3),
       monthlyPass: +(base * 20).toFixed(3),
-      effectiveFrom: iso(-days(60)),
+      effectiveFrom: iso(0),
       version: 1,
       status: "ACTIVE",
       createdBy: "Admin",
-      createdAt: iso(-days(60)),
+      createdAt: iso(0),
     });
   });
 });
-
 const rateRules: RateRule[] = [];
 const discountPlans: DiscountPlan[] = [];
-
-// ---- empty ledger (operator will create transactions) --------------
 const transactions: Transaction[] = [];
 const settlements: Settlement[] = [];
 const violations: Violation[] = [];
 const challans: Challan[] = [];
-
-// ---- staff (just the 2 users) ---------------------------------------
 const staff: Staff[] = [
-  { id: "stf-1", tenantId: "tnt-1", employeeId: "EMP-0001", name: "Admin User", designation: "PLAZA_MANAGER", plazaId: "plz-1", status: "ACTIVE", hireDate: iso(-days(120)) },
-  { id: "stf-2", tenantId: "tnt-1", employeeId: "EMP-0002", name: "Lane Operator", designation: "LANE_OPERATOR", plazaId: "plz-1", status: "ACTIVE", hireDate: iso(-days(45)) },
+  { id: "stf-1", tenantId: "tnt-1", employeeId: "EMP-0001", name: "Admin User", designation: "PLAZA_MANAGER", status: "ACTIVE", hireDate: iso(0) },
+  { id: "stf-2", tenantId: "tnt-1", employeeId: "EMP-0002", name: "Lane Operator", designation: "LANE_OPERATOR", status: "ACTIVE", hireDate: iso(0) },
 ];
-
-// ---- audit log (seeded with one login entry) -----------------------
-const auditLogs: AuditLog[] = [
-  {
-    id: "aud-001",
-    tenantId: "tnt-1",
-    actorName: "System",
-    action: "CREATE",
-    module: "admin",
-    entityType: "tenant",
-    entityId: "tnt-1",
-    afterValue: JSON.stringify({ name: "Oman Toll Operations" }),
-    ipAddress: "127.0.0.1",
-    hashChain: "0".repeat(64),
-    createdAt: iso(-days(120)),
-  },
-];
-
+const auditLogs: AuditLog[] = [];
 const notifications: Notification[] = [];
 const supportTickets: SupportTicket[] = [];
 const corporateAccounts: CorporateAccount[] = [];
 const invoices: Invoice[] = [];
-
-// ---- 2 users only ---------------------------------------------------
-const users: User[] = [
-  {
-    id: "usr-admin",
-    tenantId: "tnt-1",
-    email: "admin@omantoll.om",
-    name: "Admin User",
-    role: "ADMIN",
-    mfaEnabled: true,
-    lastLoginAt: iso(-3600_000),
-    status: "ACTIVE",
-  },
-  {
-    id: "usr-operator",
-    tenantId: "tnt-1",
-    email: "operator@omantoll.om",
-    name: "Lane Operator",
-    role: "OPERATOR",
-    mfaEnabled: false,
-    lastLoginAt: iso(-600_000),
-    status: "ACTIVE",
-  },
-];
 
 export const initialState: AppState = {
   currentUser: null,

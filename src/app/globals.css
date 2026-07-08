@@ -166,4 +166,53 @@
   .revenue-glow {
     box-shadow: 0 0 0 1px rgba(224, 160, 48, 0.25), 0 8px 24px -8px rgba(224, 160, 48, 0.4);
   }
+
+  /* Modern card hover effects */
+  .card-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Smooth tab transitions */
+  .tab-active {
+    position: relative;
+  }
+  .tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: var(--color-teal);
+    border-radius: 1px;
+  }
+
+  /* Subtle glow for KPI cards */
+  .kpi-glow-revenue {
+    box-shadow: 0 0 0 1px rgba(224, 160, 48, 0.1), 0 4px 16px -4px rgba(224, 160, 48, 0.2);
+  }
+  .kpi-glow-success {
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.1), 0 4px 16px -4px rgba(16, 185, 129, 0.2);
+  }
+  .kpi-glow-warning {
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.1), 0 4px 16px -4px rgba(245, 158, 11, 0.2);
+  }
+
+  /* Gradient text for brand elements */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Table row hover */
+  .table-row-hover:hover {
+    background-color: rgba(46, 139, 139, 0.03);
+  }
 }
